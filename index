@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>THE VAULT — V17 App-Store Ready</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg: #050509; --bg-soft: #0b0b12; --accent: #ff2d55; --accent-glow: rgba(255, 45, 85, 0.4);
+      --gold: #d4af37; --text: #f5f5f8; --muted: #8b8b99; --glass: rgba(17, 17, 26, 0.85);
+      --border: rgba(255, 255, 255, 0.08); --radius: 16px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: "Space Grotesk", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 20% 80%, rgba(255, 45, 85, 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.06) 0%, transparent 50%); z-index: -1; }
+    
+    .screen { position: fixed; inset: 0; display: flex; flex-direction: column; padding: 24px; opacity: 0; pointer-events: none; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10; background: var(--bg); overflow-y: auto; }
+    .screen.active { opacity: 1; pointer-events: all; transform: translateY(0); z-index: 20; }
+    
+    #screen-landing { align-items: center; justify-content: center; text-align: center; }
+    .vault-emblem { width: 80px; height: 80px; margin: 0 auto 24px; background: radial-gradient(circle at 30% 30%, #ffb3d1, var(--accent), #7b2cff); border-radius: 50%; box-shadow: 0 0 40px var(--accent-glow); animation: pulse 4s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 60px var(--accent-glow); } }
+    .landing-title { font-family: "Playfair Display", serif; font-size: 42px; background: linear-gradient(135deg, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .landing-sub { font-size: 15px; color: var(--muted); font-style: italic; margin-bottom: 40px; max-width: 320px; line-height: 1.6; }
+    .enter-btn { padding: 16px 48px; background: linear-gradient(135deg, var(--accent), #ff6b8a); color: #fff; border: none; border-radius: 99px; font-size: 13px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; }
+    
+    .setup-box { max-width: 420px; width: 100%; margin: auto; background: var(--glass); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; padding: 28px; }
+    .step-label { font-size: 11px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 6px; }
+    .step-title { font-family: "Playfair Display", serif; font-size: 24px; margin-bottom: 6px; }
+    .options-list { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; margin-bottom: 20px; }
+    .opt-card { padding: 14px; background: rgba(10, 10, 16, 0.6); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; }
+    .opt-card:hover, .opt-card.selected { border-color: var(--accent); background: var(--accent-glow); transform: translateX(4px); }
+    .opt-card h3 { font-size: 15px; margin-bottom: 2px; } .opt-card p { font-size: 11px; color: var(--muted); }
+    .input-field { width: 100%; padding: 14px; background: rgba(10, 10, 16, 0.6); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; margin-bottom: 10px; outline: none; }
+    .player-setup-card { background: rgba(10,10,16,0.4); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    .player-setup-card label { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 6px; }
+    .setup-footer { display: flex; gap: 12px; margin-top: 10px; }
+    .btn { flex: 1; padding: 14px; border-radius: 99px; border: none; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--gold)); color: #fff; }
+    .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+    .menu-trigger, .icon-btn { width: 40px; height: 40px; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+    .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    .engine-card { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; cursor: pointer; transition: 0.3s; }
+    .engine-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .engine-card h3 { font-family: "Playfair Display", serif; font-size: 18px; margin-bottom: 6px; }
+    .engine-card p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    
+    .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .vault-card { width: 100%; max-width: 340px; aspect-ratio: 3/4; background: linear-gradient(165deg, rgba(30, 20, 40, 0.9), rgba(10, 5, 15, 0.95)); border: 1px solid var(--border); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; overflow: hidden; transition: transform 0.4s; }
+    .vault-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .card-cat { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.2em; display: flex; justify-content: space-between; align-items: center; }
+    .phase-badge { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 99px; font-size: 10px; }
+    .card-prompt { font-family: "Playfair Display", serif; font-size: 20px; line-height: 1.5; font-style: italic; text-align: center; flex: 1; display: flex; align-items: center; min-height: 120px; animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .card-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .reaction-options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; animation: fadeIn 0.5s ease-out; }
+    .reaction-btn { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text); cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: 0.2s; font-size: 14px; }
+    .reaction-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+    
+    #overlay-blackout { position: fixed; inset: 0; background: #000; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+    #overlay-blackout.active { opacity: 1; pointer-events: all; }
+    .blackout-text { font-family: "Playfair Display", serif; font-size: 28px; color: var(--text); margin-bottom: 20px; text-align: center; }
+    
+    #menu-lateral, .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+    #menu-lateral.active, .modal-overlay.active { opacity: 1; pointer-events: all; }
+    .menu-drawer { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: var(--bg-soft); border-right: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.4s; padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+    #menu-lateral.active .menu-drawer { transform: translateX(0); }
+    .menu-item { padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 14px; display: flex; justify-content: space-between; }
+    .menu-item.danger { border-color: rgba(255,59,92,0.3); color: #ff3b5c; margin-top: auto; }
+    
+    .modal-content { width: 90%; max-width: 400px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 24px; padding: 24px; max-height: 80vh; overflow-y: auto; }
+    .host-log { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; font-size: 12px; color: var(--muted); max-height: 150px; overflow-y: auto; margin-bottom: 16px; font-family: monospace; }
+    
+    .director-event { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; opacity: 0; pointer-events: none; transition: 0.5s; }
+    .director-event.active { opacity: 1; pointer-events: all; }
+    .director-title { font-family: "Playfair Display", serif; font-size: 32px; color: var(--accent); margin-bottom: 20px; text-shadow: 0 0 20px var(--accent); }
+    
+    .recap-card { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+    .recap-title { font-family: "Playfair Display", serif; font-size: 20px; color: var(--gold); margin-bottom: 8px; }
+    .recap-stat { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+    .recap-moment { font-size: 13px; color: var(--muted); font-style: italic; border-left: 2px solid var(--accent); padding-left: 12px; margin: 8px 0; text-align: left; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- LANDING -->
+  <div class="screen active" id="screen-landing">
+    <div class="vault-emblem"></div>
+    <h1 class="landing-title">THE VAULT</h1>
+    <p class="landing-sub">Where curiosity becomes connection.<br>Some doors open only when you dare to ask…</p>
+    <button class="enter-btn" onclick="App.tryLoadGame()">ENTER THE VAULT</button>
+    <button class="btn btn-secondary" style="margin-top:16px; width: 200px;" onclick="App.showScreen('screen-setup'); App.renderSetupStep(1)">NEW SESSION</button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="screen" id="screen-setup">
+    <div class="setup-box">
+      <div class="step-label" id="step-label">Step 01 / 05</div>
+      <div class="step-title" id="step-title">How many people?</div>
+      <div class="options-list" id="options-list"></div>
+      <div class="setup-footer">
+        <button class="btn btn-secondary" id="btn-back" onclick="App.setupBack()">Back</button>
+        <button class="btn btn-primary" id="btn-next" onclick="App.setupNext()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUB -->
+  <div class="screen" id="screen-hub">
+    <div class="top-bar">
+      <div class="menu-trigger" onclick="App.toggleMenu()">☰</div>
+      <div style="font-family:'Playfair Display'; font-size:18px; color:var(--gold);">THE VAULT</div>
+    </div>
+    <h2 style="font-family:'Playfair Display'; font-size: 24px; margin: 20px 0 6px;">The Dashboard</h2>
+    <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">Phase <span id="hub-phase">1</span>: <span id="hub-phase-name">Social</span> · Mode: <span id="hub-mode" style="color:var(--gold)">Friendly</span></p>
+    <div class="hub-grid">
+      <div class="engine-card" onclick="App.startEngine('main')"><h3>🎲 Main Games</h3><p>Classic truths, dares, and tension.</p></div>
+      <div class="engine-card" onclick="App.startEngine('group')"><h3>👥 Group Games</h3><p>Chaos, laughter, unexpected connections.</p></div>
+      <div class="engine-card" onclick="App.startEngine('couple')"><h3>❤️ Couple Mode</h3><p>Deep intimacy and psychological secrets.</p></div>
+      <div class="engine-card" onclick="App.startEngine('highstakes')"><h3>🔥 High Stakes</h3><p>Psychological tension, secrets, and social risk.</p></div>
+      <div class="engine-card" onclick="App.startEngine('social')"><h3>🧪 Social Experiments</h3><p>Mini psychological games and missions.</p></div>
+      <div class="engine-card" onclick="App.UI.openStats()"><h3>📊 Statistics</h3><p>View live relationship matrix & titles.</p></div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game" style="padding: 16px 24px;">
+    <div class="top-bar">
+      <div class="menu-trigger" onclick="App.toggleMenu()">☰</div>
+      <div style="font-family:'Playfair Display'; font-size:18px; color:var(--gold);" id="engine-title">The Vault</div>
+      <button class="btn btn-secondary" style="flex:0; padding: 8px 16px; font-size: 10px;" onclick="App.showScreen('screen-hub')">Hub</button>
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+      <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;">Current Turn</div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 28px;" id="current-player-name">Player 1</div>
+    </div>
+    <div class="game-area">
+      <div class="vault-card" id="vault-card">
+        <div class="card-cat" id="card-cat"><span>Awaiting Command</span><span class="phase-badge" id="phase-badge">Phase 1</span></div>
+        <div class="card-prompt" id="card-prompt" aria-live="polite">Tap "Draw from Vault" to let the Director speak...</div>
+        <div class="card-actions" id="card-actions">
+          <button class="btn btn-secondary" onclick="App.skipTurn()">Skip</button>
+          <button class="btn btn-primary" id="draw-btn" onclick="App.drawCard()">Draw from Vault</button>
+        </div>
+        <div class="reaction-options hidden" id="reaction-options" role="dialog" aria-label="Reaction options">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">How did it go?</div>
+          <button class="reaction-btn" onclick="App.logReaction('nailed')"><span>🔥 Nailed It</span><span style="color:var(--gold)">+XP, +Chemistry</span></button>
+          <button class="reaction-btn" onclick="App.logReaction('awkward')"><span>😬 Awkward</span><span style="color:var(--muted)">+Rivalry</span></button>
+          <button class="reaction-btn" onclick="App.logReaction('refused')"><span>🛑 Refused</span><span style="color:#ff3b5c">-XP</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSION END -->
+  <div class="screen" id="screen-end" style="align-items: center; justify-content: center; text-align: center;">
+    <h2 style="font-family:'Playfair Display'; font-size: 32px; color: var(--gold); margin-bottom: 8px;">The Vault Closes</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">Tonight's Story</p>
+    <div style="width: 100%; max-width: 400px;">
+      <div class="recap-card">
+        <div class="recap-title">Session Highlights</div>
+        <div class="recap-stat" id="recap-targeted">Most Targeted: -</div>
+        <div class="recap-stat" id="recap-chem">Highest Chemistry: -</div>
+      </div>
+      <div class="recap-card" style="text-align: left;">
+        <div class="recap-title">Memorable Moments</div>
+        <div id="recap-moments"></div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-secondary" onclick="App.showScreen('screen-landing')">Archive & Exit</button>
+        <button class="btn btn-primary" onclick="App.forgetAndRestart()">Start Fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLACKOUT -->
+  <div id="overlay-blackout" onclick="App.closeBlackout()">
+    <div class="blackout-text" id="blackout-name">Pass to Player 2</div>
+    <div style="font-size: 14px; color: var(--muted);">Tap anywhere when ready</div>
+  </div>
+
+  <!-- DIRECTOR -->
+  <div class="director-event" id="director-event">
+    <div class="director-title">👁️ THE DIRECTOR SPEAKS</div>
+    <div style="font-family:'Playfair Display'; font-size:20px; line-height:1.6; max-width:400px; margin-bottom:30px;" id="director-text"></div>
+    <button class="btn btn-primary" style="width:200px;" onclick="App.closeDirector()">Accept Fate</button>
+  </div>
+
+  <!-- MENU -->
+  <div id="menu-lateral" onclick="if(event.target===this) App.toggleMenu()">
+    <div class="menu-drawer">
+      <div style="font-family:'Playfair Display'; font-size: 20px; color: var(--gold); margin-bottom: 20px;">Navigation</div>
+      <div class="menu-item" onclick="App.showScreen('screen-hub'); App.toggleMenu();">Dashboard 🏠</div>
+      <div class="menu-item" onclick="App.UI.openSettings(); App.toggleMenu();">Settings ⚙️</div>
+      <div class="menu-item" onclick="App.UI.openHostPanel(); App.toggleMenu();">Host Panel 🛠️</div>
+      <div class="menu-item" onclick="App.UI.openStats(); App.toggleMenu();">Statistics 📊</div>
+      <div class="menu-item danger" onclick="App.UI.showSessionEnd(); App.toggleMenu();">End Session 🚪</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this) App.UI.closeSettings()">
+    <div class="modal-content">
+      <div style="font-family:'Playfair Display'; font-size:22px; color:var(--gold); margin-bottom:16px;">Settings</div>
+      <label style="font-size:12px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; display:block;">Content Mode</label>
+      <select class="input-field" id="setting-vibe" style="margin-bottom:16px;">
+        <option value="family">Family & Friends (Safe)</option>
+        <option value="friendly">Friendly — Escalating</option>
+        <option value="couple">Couple Mode</option>
+        <option value="hot">Hot Mode</option>
+      </select>
+      <label style="font-size:12px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; display:block;">AI Director API Key</label>
+      <input type="password" class="input-field" id="setting-api" placeholder="sk-or-v1...">
+      <p style="font-size:11px; color:var(--muted); margin-bottom:16px;">Content Mode actively filters prompt pools. API key enables cinematic rewriting.</p>
+      <button class="btn btn-primary" style="width:100%;" onclick="App.UI.saveSettings()">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- HOST MODAL -->
+  <div class="modal-overlay" id="host-modal" onclick="if(event.target===this) App.UI.closeHostPanel()">
+    <div class="modal-content">
+      <div style="font-family:'Playfair Display'; font-size:22px; color:var(--gold); margin-bottom:16px;">Host Panel</div>
+      <div class="host-log" id="host-log">No entries yet.</div>
+      <button class="btn btn-secondary" style="width:100%; margin-bottom:8px;" onclick="App.hostAction('skip')">Skip to Next Player</button>
+      <button class="btn btn-secondary" style="width:100%; margin-bottom:16px; border-color:#ff3b5c; color:#ff3b5c;" onclick="App.hostAction('end')">End Session</button>
+      <button class="btn btn-primary" style="width:100%;" onclick="App.UI.closeHostPanel()">Close</button>
+    </div>
+  </div>
+
+  <!-- STATS MODAL -->
+  <div class="modal-overlay" id="stats-modal" onclick="if(event.target===this) App.UI.closeStats()">
+    <div class="modal-content">
+      <div style="font-family:'Playfair Display'; font-size:22px; color:var(--gold); margin-bottom:16px;">Session Statistics</div>
+      <div id="stats-content" style="font-size:14px; line-height:1.8;"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="App.UI.closeStats()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // --- STATE & STORAGE ---
+    const State = {
+      players: [], currentTurn: 0, vibe: 'friendly', mood: 'open', intensity: 'medium',
+      memory: [], turnCount: 0, currentEngine: 'main', phase: 1, totalXP: 0, 
+      lastDrawId: 0, activeTargetIdx: -1, pendingCard: null, isCardActive: false,
+      settings: { apiKey: '' },
+      stats: { skips: {}, completes: {}, targets: {} }
+    };
+    
+    const Storage = {
+      save: () => {
+        if (State.memory.length > 40) State.memory = State.memory.slice(-40);
+        localStorage.setItem('vault_v17', JSON.stringify(State));
+      },
+      load: () => {
+        try {
+          const s = JSON.parse(localStorage.getItem('vault_v17'));
+          if (s && s.players && s.players.length > 0) { Object.assign(State, s); return true; }
+        } catch { localStorage.removeItem('vault_v17'); }
+        return false;
+      },
+      clear: () => localStorage.removeItem('vault_v17')
+    };
+
+    // --- PROMPT ENGINE (App-Store Safe, High Tension) ---
+    const PromptEngine = {
+      getFiltered: (engine, state) => {
+        let pool = PROMPTS[engine] || PROMPTS.main;
+        const { vibe, intensity, phase } = state;
+        return pool.filter(p => {
+          if (vibe === 'family' && (p.tags.includes('highstakes') || p.tags.includes('chaos') || p.intensity >= 4)) return false;
+          if (vibe === 'friendly' && phase < 2 && p.intensity >= 4) return false;
+          const maxInt = intensity === 'mild' ? 2 : intensity === 'medium' ? 3 : 4;
+          return p.intensity <= maxInt + (phase - 1);
+        });
+      }
+    };
+
+    const COLORS = ['#ff2d55','#4ade80','#3b82f6','#f59e0b','#8b5cf6','#ec4899'];
+    const PHASES = ['Social', 'Flirt', 'Attraction', 'Physical', 'High Stakes'];
+    let setupStep = 1, tempData = {};
+
+    const PROMPTS = {
+      main: [
+        { text: "{actor}, what is the most embarrassing thing you've done to impress {target}?", intensity: 2, tags: ['flirt', 'm_f', 'f_f'] },
+        { text: "{actor}, give {target} a genuine compliment while maintaining unbroken eye contact for 10s.", intensity: 2, tags: ['flirt', 'high_chemistry', 'm_f', 'f_f'] },
+        { text: "{actor}, what is a secret you've kept from {target} until now?", intensity: 3, tags: ['deep', 'high_trust'] },
+        { text: "{actor}, describe your perfect night with {target} using only three words.", intensity: 2, tags: ['romantic', 'm_f', 'f_f'] },
+        { text: "{actor}, if you could change one thing about {target}'s personality, what would it be?", intensity: 4, tags: ['chaos', 'high_rivalry'] },
+        { text: "{actor}, what is the most attractive physical feature of {target}?", intensity: 3, tags: ['hot', 'm_f', 'f_f'] },
+        { text: "{actor}, whisper something you've never told anyone into {target}'s ear.", intensity: 4, tags: ['deep', 'high_trust'] },
+        { text: "{actor}, maintain eye contact with {target} for 15 seconds without speaking.", intensity: 3, tags: ['tension', 'm_f', 'f_f'] },
+        { text: "{actor}, use your '{actor_lore}' to convince {target} to share a {target_lore}.", intensity: 3, tags: ['lore', 'all'] },
+        { text: "{actor}, what's a compliment {target} receives that actually means something?", intensity: 3, tags: ['deep', 'high_trust'] }
+      ],
+      group: [
+        { text: "{actor}, who in this room would survive a zombie apocalypse the longest?", intensity: 1, tags: ['fun', 'all'] },
+        { text: "{actor}, point to the person most likely to become a millionaire. Explain why.", intensity: 2, tags: ['fun', 'all'] },
+        { text: "{actor}, swap an item of clothing with {target} for the next 3 rounds.", intensity: 3, tags: ['chaos', 'm_f', 'f_f'] },
+        { text: "{actor}, let the group vote on one question you must answer honestly about {target}.", intensity: 3, tags: ['deep', 'all'] },
+        { text: "{actor}, recreate your favorite movie scene with {target} using only props in this room.", intensity: 2, tags: ['fun', 'm_f', 'f_f'] }
+      ],
+      couple: [
+        { text: "{actor}, trace the jawline of {target} with one finger. Tell them what you feel.", intensity: 3, tags: ['intimate', 'high_chemistry', 'm_f', 'f_f'] },
+        { text: "{actor}, what is a fantasy you've had that involves {target}?", intensity: 4, tags: ['hot', 'm_f', 'f_f'] },
+        { text: "{actor}, blindfold {target}. Kiss their neck for 10 seconds. They must guess where.", intensity: 4, tags: ['physical', 'high_trust', 'm_f', 'f_f'] },
+        { text: "{actor}, what is the exact moment you realized you were drawn to {target}?", intensity: 3, tags: ['romantic', 'm_f', 'f_f'] },
+        { text: "{actor}, describe what '{target_lore}' means to you when you think of {target}.", intensity: 3, tags: ['lore', 'high_chemistry', 'm_f', 'f_f'] }
+      ],
+      highstakes: [
+        { text: "{actor}, hand your unlocked phone to {target}. They have 30 seconds to read your last sent text message out loud.", intensity: 4, tags: ['highstakes', 'all'] },
+        { text: "{actor}, let {target} look through your camera roll for 15 seconds. No deleting anything.", intensity: 4, tags: ['highstakes', 'all'] },
+        { text: "{actor}, reveal your screen time to the group. If it's over 5 hours, you must take a penalty chosen by {target}.", intensity: 3, tags: ['highstakes', 'all'] },
+        { text: "{actor}, give {target} your social media password. They can post one thing. You cannot delete it for an hour.", intensity: 5, tags: ['highstakes', 'chaos'] },
+        { text: "{actor}, call the last person you texted and put it on speaker. {target} gets to ask them one question.", intensity: 4, tags: ['highstakes', 'chaos'] },
+        { text: "{actor}, unlock your phone and let {target} send one email from your account. You cannot look at the screen.", intensity: 5, tags: ['highstakes', 'chaos'] },
+        { text: "{actor}, show {target} your last 5 search history entries. If you refuse, lose 50 XP.", intensity: 4, tags: ['highstakes', 'all'] },
+        { text: "{actor}, let the group draft a text message from your phone to your crush/ex. You must hit send.", intensity: 5, tags: ['highstakes', 'chaos'] }
+      ],
+      social: [
+        { text: "{actor}, your secret mission: Make {target} laugh within the next 2 minutes.", intensity: 2, tags: ['mission', 'all'] },
+        { text: "{actor}, convince {target} to say the word 'Vault' in the next 3 turns.", intensity: 3, tags: ['mission', 'all'] },
+        { text: "{actor}, you are the Director. Command {target} to do one harmless dare.", intensity: 3, tags: ['chaos', 'high_rivalry', 'all'] },
+        { text: "{actor}, trade seats with the person you feel the most tension with.", intensity: 2, tags: ['tension', 'm_f', 'f_f'] }
+      ]
+    };
+
+    // --- MAIN APP CONTROLLER ---
+    const App = {
+      showScreen: (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      },
+      toggleMenu: () => document.getElementById('menu-lateral').classList.toggle('active'),
+      
+      tryLoadGame: () => {
+        if (Storage.load()) { App.showScreen('screen-hub'); App.UI.updateHub(); } 
+        else { App.showScreen('screen-setup'); App.renderSetupStep(1); }
+      },
+
+      renderSetupStep: (step) => {
+        setupStep = step;
+        const opt = document.getElementById('options-list');
+        document.getElementById('step-label').textContent = `Step 0${step} / 05`;
+        document.getElementById('btn-back').style.display = step > 1 ? 'block' : 'none';
+        document.getElementById('btn-next').textContent = step === 5 ? 'Enter The Vault' : 'Continue';
+        
+        if (step === 1) {
+          document.getElementById('step-title').textContent = "How many people?";
+          opt.innerHTML = [2,3,4,5,6,8].map(n => `<div class="opt-card" onclick="App.selectOpt(this, 'count', ${n})"><h3>${n} ${n===2?'Couple':n<=4?'Group':'Party'}</h3></div>`).join('');
+        } else if (step === 2) {
+          document.getElementById('step-title').textContent = "Who's in the vault?";
+          opt.innerHTML = '';
+          for(let i=0; i<tempData.count; i++) opt.innerHTML += `<div class="player-setup-card"><label>Name</label><input class="input-field p-name" value="Player ${i+1}"><label>Gender</label><select class="input-field p-gender"><option value="M">Male</option><option value="F">Female</option><option value="NB">Non-Binary</option></select><label>Lore</label><input class="input-field p-lore" placeholder="Green flag, secret..."></div>`;
+        } else if (step === 3) {
+          document.getElementById('step-title').textContent = "What kind of night?";
+          const vibes = [{k:'family', t:'Family & Friends', d:'No explicit content.'}, {k:'friendly', t:'Friendly — Escalating', d:'Starts warm, ends hot.'}, {k:'couple', t:'Couple Mode', d:'Intimacy and secrets.'}, {k:'hot', t:'Hot Mode', d:'No limits on fun.'}];
+          opt.innerHTML = vibes.map(v => `<div class="opt-card" onclick="App.selectOpt(this, 'vibe', '${v.k}')"><h3>${v.t}</h3><p>${v.d}</p></div>`).join('');
+        } else if (step === 4) {
+          document.getElementById('step-title').textContent = "What's the mood?";
+          const moods = [{k:'romantic', t:'Romantic'}, {k:'deep', t:'Deep & Honest'}, {k:'wild', t:'Wild & Playful'}, {k:'open', t:'Open — Everything'}];
+          opt.innerHTML = moods.map(m => `<div class="opt-card" onclick="App.selectOpt(this, 'mood', '${m.k}')"><h3>${m.t}</h3></div>`).join('');
+        } else if (step === 5) {
+          document.getElementById('step-title').textContent = "How deep?";
+          opt.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div class="opt-card" onclick="App.selectOpt(this, 'intensity', 'mild')"><h4>Mild</h4></div>
+            <div class="opt-card selected" onclick="App.selectOpt(this, 'intensity', 'medium')"><h4>Medium</h4></div>
+            <div class="opt-card" onclick="App.selectOpt(this, 'intensity', 'hot')"><h4>Hot</h4></div>
+          </div>`;
+        }
+      },
+      selectOpt: (el, k, v) => { el.parentElement.querySelectorAll('.opt-card').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); tempData[k] = v; },
+      setupNext: () => {
+        if (setupStep === 1 && !tempData.count) return alert('Select count.');
+        if (setupStep === 2) tempData.players = Array.from(document.querySelectorAll('.p-name')).map((el, i) => ({ name: el.value.trim() || `P${i+1}`, gender: document.querySelectorAll('.p-gender')[i].value, lore: document.querySelectorAll('.p-lore')[i].value.trim() || 'a mystery', color: COLORS[i % COLORS.length], relationships: [] }));
+        if (setupStep === 5) { tempData.intensity = tempData.intensity || 'medium'; App.initGame(); return; }
+        App.renderSetupStep(setupStep + 1);
+      },
+      setupBack: () => App.renderSetupStep(setupStep - 1),
+
+      initGame: () => {
+        State.players = tempData.players;
+        State.vibe = tempData.vibe; State.mood = tempData.mood; State.intensity = tempData.intensity;
+        State.players.forEach((p1, i) => { 
+          for(let j=0; j<State.players.length; j++) p1.relationships[j] = (i===j) ? null : { chemistry: 10, trust: 10, rivalry: 0 };
+          State.stats.skips[p1.name] = 0; State.stats.completes[p1.name] = 0; State.stats.targets[p1.name] = 0;
+        });
+        App.showScreen('screen-hub'); App.UI.updateHub(); Storage.save();
+      },
+
+      startEngine: (engine) => { 
+        // ENGINE VIBE GUARD
+        if (State.vibe === 'family' && (engine === 'highstakes' || engine === 'couple')) {
+          alert('This engine is locked in Family Mode. Redirecting to Main Games.');
+          engine = 'main';
+        }
+        State.currentEngine = engine; 
+        document.getElementById('engine-title').textContent = engine.charAt(0).toUpperCase() + engine.slice(1) + ' Mode'; 
+        App.showScreen('screen-game'); App.UI.updateGameUI(); 
+      },
+
+      getWeightedTarget: () => {
+        const actorIdx = State.currentTurn;
+        const actor = State.players[actorIdx];
+        const weights = State.players.map((p, i) => {
+          if (i === actorIdx) return 0;
+          let weight = (actor.relationships[i]?.chemistry || 10) + 5;
+          
+          // FIX: Only apply gender bias if the vibe is couple/hot
+          if (State.vibe === 'couple' || State.vibe === 'hot') {
+            if ((actor.gender === 'M' && p.gender === 'F') || (actor.gender === 'F' && p.gender === 'F')) weight += 15; 
+          }
+          
+          // FIX: Exploration bias (favor people we haven't targeted much)
+          const targetCount = State.stats.targets[p.name] || 0;
+          weight += Math.max(0, 10 - (targetCount * 2));
+          
+          return weight;
+        });
+        const total = weights.reduce((a, b) => a + b, 0) || 1;
+        let r = Math.random() * total;
+        for (let i = 0; i < weights.length; i++) { if (r < weights[i]) return i; r -= weights[i]; }
+        return (actorIdx + 1) % State.players.length;
+      },
+
+      drawCard: async () => {
+        State.isCardActive = true;
+        const drawId = State.lastDrawId = Date.now();
+        document.getElementById('draw-btn').classList.add('hidden');
+        document.getElementById('card-actions').classList.add('hidden');
+        document.getElementById('card-prompt').textContent = "The Director is selecting...";
+        
+        const actor = State.players[State.currentTurn];
+        const targetIdx = App.getWeightedTarget();
+        const target = State.players[targetIdx];
+        State.activeTargetIdx = targetIdx; 
+        State.stats.targets[target.name] = (State.stats.targets[target.name] || 0) + 1;
+
+        let prompt = ""; let cat = "Challenge";
+        if (State.memory.length > 0 && Math.random() < 0.25) {
+          const mem = State.memory[Math.floor(Math.random() * State.memory.length)];
+          prompt = `<strong style="color:var(--gold)">The Vault Remembers:</strong><br><br>Earlier, ${mem.actor} ${mem.action}.<br><br>Now, <span style="color:${actor.color}">${actor.name}</span>, make <span style="color:${target.color}">${target.name}</span> do it back.`;
+          cat = "Memory Callback";
+        } else {
+          const pool = PromptEngine.getFiltered(State.currentEngine, State);
+          const rel = actor.relationships[targetIdx];
+          const relTags = rel.chemistry > 25 ? ['high_chemistry'] : rel.rivalry > 15 ? ['high_rivalry'] : rel.trust > 20 ? ['high_trust'] : [];
+          const genderTag = (actor.gender === 'M' && target.gender === 'F') ? 'm_f' : (actor.gender === 'F' && target.gender === 'F') ? 'f_f' : 'all';
+          
+          const valid = pool.filter(p => {
+            const tagMatch = p.tags.includes('all') || p.tags.includes(genderTag) || p.tags.some(t => relTags.includes(t)) || Math.random() < 0.5;
+            return tagMatch;
+          });
+          const baseObj = valid.length > 0 ? valid[Math.floor(Math.random() * valid.length)] : (pool[0] || {text: "Tell a secret.", intensity: 1, tags: []});
+          prompt = baseObj.text.replace(/{actor}/g, actor.name).replace(/{target}/g, target.name).replace(/{actor_lore}/g, actor.lore).replace(/{target_lore}/g, target.lore);
+        }
+
+        if (App.checkDirectorIntervention(actor, targetIdx, drawId, prompt, cat)) return;
+        App.UI.revealCard(prompt, cat);
+      },
+
+      checkDirectorIntervention: (actor, targetIdx, drawId, prompt, cat) => {
+        const chem = actor.relationships[targetIdx]?.chemistry || 0;
+        const skips = State.stats.skips[actor.name] || 0;
+        let text = "";
+        if (skips >= 2) text = `${actor.name}, you've been hiding in the shadows. The Vault demands participation. No skipping your next turn.`;
+        // FIX: Raised threshold to 50
+        else if (chem > 50) text = `The tension between ${actor.name} and ${State.players[targetIdx].name} is palpable. Maintain eye contact for 20 seconds. Let the room watch.`;
+        
+        if (text && drawId === State.lastDrawId) {
+          State.pendingCard = { prompt, cat, targetIdx };
+          document.getElementById('director-text').innerHTML = text;
+          document.getElementById('director-event').classList.add('active');
+          return true;
+        }
+        return false;
+      },
+
+      closeDirector: () => { 
+        document.getElementById('director-event').classList.remove('active'); 
+        if (State.pendingCard) {
+          State.activeTargetIdx = State.pendingCard.targetIdx;
+          App.UI.revealCard(State.pendingCard.prompt, State.pendingCard.cat);
+          State.pendingCard = null;
+        }
+      },
+
+      logReaction: (type) => {
+        const actor = State.players[State.currentTurn];
+        const targetIdx = State.activeTargetIdx !== -1 ? State.activeTargetIdx : (State.currentTurn + 1) % State.players.length; 
+        const target = State.players[targetIdx];
+
+        if (type === 'nailed') { 
+          App.updateRelationship(State.currentTurn, targetIdx, 'chemistry', 10);
+          App.updateRelationship(State.currentTurn, targetIdx, 'trust', 5);
+          State.totalXP += 15; State.stats.completes[actor.name]++; 
+          State.memory.push({ actor: actor.name, target: target.name, action: 'nailed it', turn: State.turnCount }); 
+        } else if (type === 'awkward') { 
+          App.updateRelationship(State.currentTurn, targetIdx, 'rivalry', 15);
+          State.totalXP += 5; 
+          State.memory.push({ actor: actor.name, target: target.name, action: 'had an awkward moment', turn: State.turnCount }); 
+        } else { 
+          State.stats.skips[actor.name]++; 
+          State.memory.push({ actor: actor.name, action: 'refused', turn: State.turnCount }); 
+        }
+
+        App.checkPhaseUp();
+        document.getElementById('reaction-options').classList.add('hidden');
+        State.isCardActive = false;
+        App.nextTurn();
+      },
+
+      updateRelationship: (idx1, idx2, type, amount) => {
+        if (State.players[idx1]?.relationships[idx2]) State.players[idx1].relationships[idx2][type] = Math.max(0, Math.min(100, (State.players[idx1].relationships[idx2][type] || 0) + amount));
+        if (State.players[idx2]?.relationships[idx1]) State.players[idx2].relationships[idx1][type] = Math.max(0, Math.min(100, (State.players[idx2].relationships[idx1][type] || 0) + amount));
+      },
+
+      checkPhaseUp: () => {
+        const thresholds = [0, 50, 120, 200, 300];
+        if (State.totalXP >= thresholds[State.phase] && State.phase < 5) {
+          State.phase++; alert(`🔥 PHASE UP! Welcome to Phase ${State.phase}: ${PHASES[State.phase-1]}.`);
+        }
+      },
+
+      skipTurn: () => { if (State.isCardActive) App.logReaction('refused'); else App.nextTurn(); },
+
+      nextTurn: () => {
+        State.currentTurn = (State.currentTurn + 1) % State.players.length;
+        State.turnCount++; App.UI.updateGameUI(); Storage.save();
+        document.getElementById('blackout-name').textContent = `Pass to ${State.players[State.currentTurn].name}`;
+        document.getElementById('overlay-blackout').classList.add('active');
+        if(navigator.vibrate) navigator.vibrate(200);
+      },
+
+      closeBlackout: () => {
+        document.getElementById('overlay-blackout').classList.remove('active');
+        document.getElementById('card-cat').innerHTML = `<span>Ready</span><span class="phase-badge">Phase ${State.phase}</span>`;
+        document.getElementById('card-prompt').textContent = "Tap \"Draw from Vault\" for the next player...";
+        document.getElementById('draw-btn').classList.remove('hidden');
+        document.getElementById('card-actions').classList.remove('hidden');
+        State.isCardActive = false;
+      },
+
+      hostAction: (a) => { 
+        if (State.isCardActive) { document.getElementById('reaction-options').classList.add('hidden'); State.isCardActive = false; }
+        if(a==='skip') App.nextTurn(); 
+        if(a==='end') App.UI.showSessionEnd(); 
+        App.UI.closeHostPanel(); 
+      },
+
+      forgetAndRestart: () => { Storage.clear(); location.reload(); },
+
+      // --- UI MODULE (Properly Nested) ---
+      UI: {
+        updateHub: () => {
+          document.getElementById('hub-phase').textContent = State.phase;
+          document.getElementById('hub-phase-name').textContent = PHASES[State.phase - 1];
+          document.getElementById('hub-mode').textContent = State.vibe.charAt(0).toUpperCase() + State.vibe.slice(1);
+        },
+        updateGameUI: () => {
+          document.getElementById('phase-badge').textContent = `Phase ${State.phase}`;
+          const p = State.players[State.currentTurn];
+          document.getElementById('current-player-name').textContent = p.name;
+          document.getElementById('current-player-name').style.color = p.color;
+        },
+        revealCard: (prompt, cat) => {
+          document.getElementById('card-cat').innerHTML = `<span>${cat}</span><span class="phase-badge">Phase ${State.phase}</span>`;
+          document.getElementById('card-prompt').innerHTML = prompt;
+          if (State.settings.apiKey) App.UI.enhanceWithAI(prompt, State.players[State.currentTurn], State.activeTargetIdx, State.lastDrawId);
+          document.getElementById('reaction-options').classList.remove('hidden');
+          Storage.save();
+        },
+        enhanceWithAI: async (baseText, actor, targetIdx, drawId) => {
+          const target = State.players[targetIdx];
+          const rel = actor.relationships[targetIdx];
+          // Multi-model fallback chain
+          const models = ["mistralai/mistral-7b-instruct:free", "nousresearch/nous-hermes-2-mixtral", "openai/gpt-4o-mini"];
+          for (const model of models) {
+            try {
+              const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${State.settings.apiKey}` },
+                body: JSON.stringify({ model, messages: [
+                  {role:'system', content:`Rewrite this prompt to be cinematic. Under 40 words. Use HTML <span style="color:${actor.color}">Name</span>. Chemistry: ${rel.chemistry}, Rivalry: ${rel.rivalry}.`},
+                  {role:'user', content: `Actor: ${actor.name} (${actor.lore}). Target: ${target.name} (${target.lore}). Base: ${baseText}`}
+                ]})
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (State.lastDrawId === drawId && data.choices?.[0]?.message) {
+                  document.getElementById('card-prompt').innerHTML = data.choices[0].message.content;
+                }
+                break; // Success, exit loop
+              }
+            } catch(e) { continue; } // Try next model
+          }
+        },
+        openSettings: () => { 
+          document.getElementById('setting-vibe').value = State.vibe;
+          document.getElementById('setting-api').value = State.settings.apiKey;
+          document.getElementById('settings-modal').classList.add('active'); 
+        },
+        closeSettings: () => { document.getElementById('settings-modal').classList.remove('active'); },
+        saveSettings: () => {
+          State.vibe = document.getElementById('setting-vibe').value;
+          State.settings.apiKey = document.getElementById('setting-api').value.trim();
+          App.UI.closeSettings(); App.UI.updateHub(); Storage.save();
+          alert('Settings saved. Content filters updated.');
+        },
+        openHostPanel: () => { 
+          document.getElementById('host-log').innerHTML = State.memory.length ? State.memory.map(m => `[T${m.turn}] ${m.actor} → ${m.action}`).join('<br>') : 'No entries yet.'; 
+          document.getElementById('host-modal').classList.add('active'); 
+        },
+        closeHostPanel: () => { document.getElementById('host-modal').classList.remove('active'); },
+        openStats: () => {
+          let html = "<h3 style='color:var(--gold); margin-bottom:12px;'>Relationship Matrix</h3>";
+          State.players.forEach((p1, i) => { 
+            State.players.forEach((p2, j) => { 
+              if(i<j) { 
+                const r=p1.relationships[j]; 
+                html+=`<div style="margin-bottom:8px;"><strong>${p1.name} ↔ ${p2.name}</strong><br>Chem: ${r.chemistry} | Trust: ${r.trust} | Rivalry: ${r.rivalry}</div>`; 
+              }
+            }); 
+          });
+          const mt = Object.entries(State.stats.targets).sort((a,b)=>b[1]-a[1])[0];
+          if(mt) html+=`<br><h3 style='color:var(--gold); margin-top:16px;'>Session Titles</h3><div>🎯 Most Targeted: ${mt[0]} (${mt[1]} times)</div>`;
+          document.getElementById('stats-content').innerHTML = html; 
+          document.getElementById('stats-modal').classList.add('active');
+        },
+        closeStats: () => { document.getElementById('stats-modal').classList.remove('active'); },
+        
+        showSessionEnd: () => {
+          const mt = Object.entries(State.stats.targets).sort((a,b)=>b[1]-a[1])[0];
+          document.getElementById('recap-targeted').textContent = mt ? `Most Targeted: ${mt[0]} (${mt[1]} times)` : 'Most Targeted: None';
+          
+          let maxChem = 0, chemPair = "None";
+          State.players.forEach((p1, i) => {
+            State.players.forEach((p2, j) => {
+              if(i<j && p1.relationships[j].chemistry > maxChem) {
+                maxChem = p1.relationships[j].chemistry;
+                chemPair = `${p1.name} & ${p2.name}`;
+              }
+            });
+          });
+          document.getElementById('recap-chem').textContent = `Highest Chemistry: ${chemPair} (${maxChem})`;
+
+          const moments = State.memory.slice(-3).reverse();
+          document.getElementById('recap-moments').innerHTML = moments.length ? moments.map(m => `<div class="recap-moment">"${m.actor} ${m.action}${m.target ? ' with ' + m.target : ''}"</div>`).join('') : '<div class="recap-moment">No memorable moments recorded.</div>';
+
+          App.showScreen('screen-end');
+        }
+      }
+    };
+  </script>
+</body>
+</html>
